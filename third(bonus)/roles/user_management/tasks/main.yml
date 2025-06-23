@@ -1,0 +1,24 @@
+- name: Create user
+  user:
+    name: "{{ user_name }}"
+    shell: /bin/bash
+    create_home: yes
+
+- name: Add user to sudo group
+  user:
+    name: "{{ user_name }}"
+    groups: sudo
+    append: yes
+
+- name: Setup SSH key for user
+  authorized_key:
+    user: "{{ user_name }}"
+    key: "{{ user_ssh_key }}"
+
+- name: Allow passwordless sudo
+  lineinfile:
+    path: "/etc/sudoers.d/{{ user_name }}"
+    create: yes
+    mode: '0440'
+    line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+    validate: '/usr/sbin/visudo -cf %s'

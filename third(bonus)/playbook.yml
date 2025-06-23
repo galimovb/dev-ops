@@ -1,0 +1,50 @@
+---
+- name: Настройка сервера на Timeweb
+  hosts: servers
+  become: yes
+  tasks:
+    - name: Разрешить ansibleuser sudo без пароля
+      lineinfile:
+        path: /etc/sudoers.d/ansibleuser
+        create: yes
+        mode: '0440'
+        line: 'ansibleuser ALL=(ALL) NOPASSWD:ALL'
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Создать пользователя
+      user:
+        name: ansibleuser
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Добавить пользователя в группу sudo
+      user:
+        name: ansibleuser
+        groups: sudo
+        append: yes
+
+    - name: Установить SSH-ключи для ansibleuser
+      authorized_key:
+        user: ansibleuser
+        key: "{{ lookup('file', '/home/galim/.ssh/id_rsa.pub') }}"
+
+    - name: Отключить авторизацию по паролю
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: Перезапуск SSH
+
+    - name: Создать директорию в /opt
+      file:
+        path: /opt/ansibledir
+        state: directory
+        owner: ansibleuser
+        group: ansibleuser
+        mode: '0660'
+
+  handlers:
+    - name: Перезапуск SSH
+      service:
+        name: ssh
+        state: restarted

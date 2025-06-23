@@ -1,0 +1,2 @@
+user_name: ansibleuser
+user_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

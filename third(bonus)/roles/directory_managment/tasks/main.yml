@@ -1,0 +1,8 @@
+---
+- name: Create directory in /opt
+  file:
+    path: "{{ directory_path }}"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0660'
